@@ -1,0 +1,15 @@
+  
+version: '2'
+
+services:
+  psql:
+    container_name: psql
+    image: postgres
+    environment:
+      POSTGRES_DB: "userdb"
+      POSTGRES_USER: "gydms"
+      POSTGRES_PASSWORD: "1234"
+    volumes:
+      - ./:/tmp/init
+    ports:
+      - "5000:5432" 
