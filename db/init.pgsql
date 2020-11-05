@@ -50,16 +50,3 @@ INSERT INTO testcase (p_idx,idx,input,output,created_on) VALUES (
 'hello',
 now()
 );
-
--- INSERT INTO users (email, username, password, wallet_address, created_on) VALUES (
--- 'eom@pusan.ac.kr',
--- 'eom',
--- crypt('p@ssw0rd', gen_salt('bf')),
--- '0x0000',
--- now()
--- );
-
--- SELECT username
--- FROM users
--- WHERE email = 'kmk@pusan.ac.kr'
--- AND password = crypt('p@ssw0rd', password);
