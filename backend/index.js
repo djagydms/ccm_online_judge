@@ -28,6 +28,16 @@ app.use(function (req, res, next) {
 });
 const PORT = 4000;
 
+app.post('')
+
+app.post('/mkproblem', (req, res) => {
+
+});
+
+app.post('/ranking', (req, res) => {
+
+});
+
 app.post('/scoring', (req, res) => {
 	const client = new Client({
         user: 'gydms',
@@ -38,13 +48,14 @@ app.post('/scoring', (req, res) => {
     })
 	client.connect();
 	
+	/* TODO: proj id directory / user id file */
 	var filename = "test";
 	var p_idx = 2;
 	var testcase = '';
 
 	console.log(req.body);
-	console.log(unescape(req.body.srccode.toString()));
 
+	/* TODO: migration to marker */
 	switch(req.body.lang) {
 	case "C":
 		filename += ".c";
@@ -66,18 +77,24 @@ app.post('/scoring', (req, res) => {
 		str += '\"';
 		for(item of psql_response.rows){
 			str += item['input'] + ':' + item['output'] +':';
-			
+			// TODO: passing the delimeter to marker (ex, : in testcase)
 		}
 		testcase = str.replace(/.$/,'\"');
 		
 		fs.writeFile(filename, unescape(req.body.srccode), function(err) {
 		if (err == null) {
-			const stdout = execSync('../marker/build/marker C ../../tes.c 1:536870912 '+ testcase);
+			const stdout = execSync('../marker/build/marker ' 
+									+ req.body.lang + ' ' 
+									+ filename 
+									+ ' 1:536870912 '
+									+ testcase); // TODO: limit compile, run time
 			const data = JSON.stringify({"stdout":stdout});
 			var temp = `${stdout}`;
-			console.log(JSON.parse(temp).marking);
+			console.log(testcase);
+			console.log(temp);
+			//console.log(JSON.parse(temp).marking); // marking, time (TODO: compile runtime)
 			//console.log(temp.split(','));
-			//res.send();
+			res.send(temp);
 		} else {
 			console.log("fail");
 		}

@@ -12,7 +12,8 @@ int c_create(void *conf)
 		char memory[32];
 		char *args[9] = {DOCKER_PATH, "run", "-t", "-d",};
 
-		char *args1[5] = {DOCKER_PATH, "rm", "-f", "test"};
+		/* TODO: remove this */
+		char *args1[5] = {DOCKER_PATH, "rm", "-f", "test", NULL};
 		exec_cmd(args1, NULL, NULL);
 
 		sprintf(cpus, "--cpus=%d", config->cpus);
@@ -23,13 +24,15 @@ int c_create(void *conf)
 		args[7] = MARKING_IMAGE;
 		args[8] = NULL;
 
+		/* /usr/bin/docker run -t -d --cpus=1 --memory=5~~ --name=test marking:0.2 */
+
 		return exec_cmd(args, NULL, NULL);
 }
 
 int c_prepare(char *filepath)
 {
 		char *args[] = {DOCKER_PATH, "cp", filepath, "test:/", NULL};
-		char *args2[] = {DOCKER_PATH, "exec", "test", "gcc", "tes.c", NULL};
+		char *args2[] = {DOCKER_PATH, "exec", "test", "gcc", filepath, NULL};
 		int ret;
 
 		if (ret = exec_cmd(args, NULL, NULL)) {
@@ -41,13 +44,14 @@ int c_prepare(char *filepath)
 
 char *c_exec(void *head)
 {
-		struct testcase *testcase = head;
+		struct conf *config = head;
+		struct testcase *testcase = config->testcases;
 		char *args[6] = {DOCKER_PATH, "exec", "-i", "test", "./a.out", NULL};
 		struct timeval start_time, end_time;
 		char *ret_json;
 		char *ret_ans;
 		int numans = 0;
-		long exec_time;
+		long exec_time = 0;
 		int marking[65536];
 
 		ret_ans = malloc(65536);
@@ -87,3 +91,6 @@ char *c_exec(void *head)
 
 		return ret_json;
 }
+
+/* TODO: easy install */
+// LANG_INSTALL(c);

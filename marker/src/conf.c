@@ -111,6 +111,7 @@ int init_config(int argc, char *argv[], struct conf *config)
 		return 0;
 }
 
+/* TODO: fd1, fd2 naming (PARENT_READ/WRITE, CHILD_READ/WRITE) */
 int exec_cmd(char *args[], char *_stdin, char *_stdout[])
 {
 		pid_t pid;
@@ -132,16 +133,16 @@ int exec_cmd(char *args[], char *_stdin, char *_stdout[])
 				/* Error */
 		} else if (pid == 0) {
 				/* Child */
-
 				if (_stdin != NULL) {
 						close(fd1[1]);
 						close(fd2[0]);
 						dup2(fd1[0], STDIN_FILENO);
-						dup2(fd2[1], STDOUT_FILENO);
-				} else {
-						close(STDOUT_FILENO);
 				}
-
+				if (_stdout != NULL) {
+					dup2(fd2[1], STDOUT_FILENO);
+				} else {
+					close(STDOUT_FILENO);
+				}
 				/* fd automatically close when process exited */
 				execv(args[0], args);
 				fprintf(stderr, "Failed to exec %s\n", args[0]);
@@ -157,14 +158,13 @@ int exec_cmd(char *args[], char *_stdin, char *_stdout[])
 						fprintf(stderr, "Cannot wait pid %d\n", pid);
 						return -EFAULT;
 				}
-				if (_stdin != NULL) {
+				if (_stdout != NULL) {
 						char buffer[65536];
 						close(fd2[1]);
 						memset(buffer, 0, sizeof(buffer));
 						read(fd2[0], buffer, sizeof(buffer));
 						strcpy(*_stdout, buffer);
 				}
-
 				if (status) {
 						return status;
 				}

@@ -22,11 +22,16 @@ int main(int argc, char *argv[])
 
 		/*
 		 * Initialize docker
-		 * (create docker container, copy source code file, compile(if needed))
+		 * (create docker container)
 		 */
 		if (langsw[config.lang].create(&config.docker_conf)) {
 				/* Error */
 		}
+
+		/*
+		 * Prepare docker
+		 * (copy source code file, compile(if needed))
+		 */
 		if (langsw[config.lang].prepare(config.file_path)) {
 				/* Error */
 		}
@@ -34,12 +39,13 @@ int main(int argc, char *argv[])
 		/*
 		 * Testing start using testcase and answer
 		 */
-		results = langsw[config.lang].exec(config.testcases);
+		results = langsw[config.lang].exec(&config);
 
 		/*
 		 * Returning test results through stdout */
 		printf("%s\n", results);
 
+		/* TODO: free all testcases */
 		free(config.testcases->_case);
 		free(config.testcases);
 		free(results);
