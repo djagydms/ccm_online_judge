@@ -116,7 +116,7 @@ dist
 .pnp.*
 
 # marker build output
-marker/build/
+marker/build/*
 
 # test frontend
 frontend/
