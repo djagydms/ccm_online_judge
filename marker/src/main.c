@@ -2,53 +2,74 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <conf.h>
+#include <lang.h>
+#include <testcase.h>
+#include <limits.h>
 
-// argv has configurations
+void to_json(struct score score, char *results);
+
+/*
+ * ./marker [language] [filepath] [docker_conf] [testcases]
+ */
 int main(int argc, char *argv[])
 {
-		struct conf config;
-		char *results;
-		enum lang abc;
+		struct conf conf;
+		struct score score;
+		char results[4096];
+		char temp[PATH_MAX * 2];
+		int ret = 0;
 
 		/*
 		 * Configurations setting
 		 * (language, system resources, testcase, answer)
 		 */
-		if (init_config(argc, argv, &config)) {
-				/* Error */
-				fprintf(stderr, "configuration error!\n");
-				exit(-EFAULT);
+		if (ret = init_config(argc, argv, &conf)) {
+				fprintf(stderr, "confuration error!\n");
+				goto out;
 		}
 
 		/*
 		 * Initialize docker
 		 * (create docker container)
 		 */
-		if (langsw[config.lang].create(&config.docker_conf)) {
-				/* Error */
+		if (ret = langsw[conf.lang].create(&conf)) {
+				fprintf(stderr, "docker creation error!\n");
+				goto out;
 		}
 
 		/*
 		 * Prepare docker
 		 * (copy source code file, compile(if needed))
 		 */
-		if (langsw[config.lang].prepare(config.file_path)) {
-				/* Error */
+		if (ret = langsw[conf.lang].prepare(&conf)) {
+				fprintf(stderr, "docker prepare error!\n");
+				goto out;
 		}
 
 		/*
 		 * Testing start using testcase and answer
 		 */
-		results = langsw[config.lang].exec(&config);
+		if (ret = langsw[conf.lang].exec(&conf, &score)) {
+				fprintf(stderr, "docker exec error!\n");
+				goto out;
+		}
 
 		/*
-		 * Returning test results through stdout */
+		 * Returning test results through stdout
+		 */
+		to_json(score, results);
 		printf("%s\n", results);
+out:
+		free_testcases(conf.testcases);
+		fclose(stdout);
+		sprintf(temp, "docker rm -f %s", conf.docker_conf.name);
+		system(temp);
 
-		/* TODO: free all testcases */
-		free(config.testcases->_case);
-		free(config.testcases);
-		free(results);
+		return ret;
+}
 
-		return 0;
+void to_json(struct score score, char *results)
+{
+		sprintf(results, "{\"marking\":%s,\"exectime\":%ld}", 
+						score.marking, score.exectime);
 }

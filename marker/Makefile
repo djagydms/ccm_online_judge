@@ -2,7 +2,7 @@ BUILD_DIR=./build
 SRC_DIR=./src
 INC_DIR=./include
 CC=gcc
-OBJS=$(addprefix $(BUILD_DIR)/, main.o conf.o c.o cpp.o java.o python.o)
+OBJS=$(addprefix $(BUILD_DIR)/, main.o conf.o testcase.o c.o python.o)
 TARGET=$(BUILD_DIR)/marker
 
 all: $(TARGET)

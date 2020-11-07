@@ -1,96 +1,83 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <conf.h>
 #include <sys/time.h>
 #include <string.h>
+#include <errno.h>
+#include <assert.h>
+#include <conf.h>
+#include <testcase.h>
+#include <limits.h>
 
-int c_create(void *conf)
+int c_create(void *_conf)
 {
-		struct docker_conf *config = conf;
+		struct conf *conf = _conf;
+		char *args[9] = {DOCKER_PATH, "run", "-t", "-d",};
+		char name[PATH_MAX * 2];
 		char cpus[32];
 		char memory[32];
-		char *args[9] = {DOCKER_PATH, "run", "-t", "-d",};
 
-		/* TODO: remove this */
-		char *args1[5] = {DOCKER_PATH, "rm", "-f", "test", NULL};
-		exec_cmd(args1, NULL, NULL);
+		sprintf(name, "--name=%s", conf->docker_conf.name);
+		sprintf(cpus, "--cpus=%d", conf->docker_conf.cpus);
+		sprintf(memory, "--memory=%d", conf->docker_conf.memory);
 
-		sprintf(cpus, "--cpus=%d", config->cpus);
-		sprintf(memory, "--memory=%d", config->memory);
-		args[4] = cpus;
-		args[5] = memory;
-		args[6] = "--name=test";
+		args[4] = name;
+		args[5] = cpus;
+		args[6] = memory;
 		args[7] = MARKING_IMAGE;
 		args[8] = NULL;
-
-		/* /usr/bin/docker run -t -d --cpus=1 --memory=5~~ --name=test marking:0.2 */
 
 		return exec_cmd(args, NULL, NULL);
 }
 
-int c_prepare(char *filepath)
+int c_prepare(void *_conf)
 {
-		char *args[] = {DOCKER_PATH, "cp", filepath, "test:/", NULL};
-		char *args2[] = {DOCKER_PATH, "exec", "test", "gcc", filepath, NULL};
+		struct conf *conf = _conf;
+		char *args[5] = {DOCKER_PATH, "cp", conf->filepath,};
+		char *args2[] = {DOCKER_PATH, "exec", 
+				conf->docker_conf.name, "gcc", conf->filepath, NULL};
+		char buffer[PATH_MAX * 2];
 		int ret;
 
-		if (ret = exec_cmd(args, NULL, NULL)) {
+		sprintf(buffer, "%s:/", conf->docker_conf.name);
+		args[3] = buffer;
+		args[4] = NULL;
+
+		if (ret = exec_cmd(args, NULL, NULL))
 				return ret;
-		}
 
 		return exec_cmd(args2, NULL, NULL);
 }
 
-char *c_exec(void *head)
+int c_exec(void *_conf, struct score *score)
 {
-		struct conf *config = head;
-		struct testcase *testcase = config->testcases;
-		char *args[6] = {DOCKER_PATH, "exec", "-i", "test", "./a.out", NULL};
+		struct conf *conf = _conf;
+		struct testcase *testcase = conf->testcases;
+		char *args[6] = {DOCKER_PATH, "exec", "-i", 
+				conf->docker_conf.name, "./a.out", NULL};
 		struct timeval start_time, end_time;
-		char *ret_json;
 		char *ret_ans;
 		int numans = 0;
-		long exec_time = 0;
-		int marking[65536];
 
 		ret_ans = malloc(65536);
-		if (ret_ans == NULL) {
-				return NULL;
-		}
+		if (ret_ans == NULL)
+				return -ENOMEM;
 
+		score->exectime = 0;
 		while (testcase != NULL) {
 				gettimeofday(&start_time, NULL);
 				exec_cmd(args, testcase->_case, &ret_ans);
 				gettimeofday(&end_time, NULL);
 
-				exec_time += end_time.tv_usec > start_time.tv_usec ? 
+				score->exectime += end_time.tv_usec > start_time.tv_usec ? 
 						end_time.tv_usec - start_time.tv_usec : 0;
 
-				if (!strcmp(testcase->_ans, ret_ans)) {
-						marking[numans++] = 1;
-				} else {
-						marking[numans++] = 0;
-				}
+				score->marking[numans++] =
+						strcmp(testcase->_ans, ret_ans) ? 'x' : 'o';
+				assert(numans < MAX_CASE);
 
 				testcase = testcase->next;
 		}
-
-		for (int i=0; i<numans; i++) {
-				ret_ans[i] = marking[i] ? 'o' : 'x';
-		}
-		ret_ans[numans] = '\0';
-
-		ret_json = malloc(sizeof(65536));
-		if (ret_json > 0) {
-				sprintf(ret_json,
-						"{\"marking\":\"%s\",\"exectime\":%ld}", 
-						ret_ans, exec_time);
-		}
 		free(ret_ans);
 
-		return ret_json;
+		return 0;
 }
-
-/* TODO: easy install */
-// LANG_INSTALL(c);

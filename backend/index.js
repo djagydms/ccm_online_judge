@@ -54,23 +54,6 @@ app.post('/scoring', (req, res) => {
 	var testcase = '';
 
 	console.log(req.body);
-
-	/* TODO: migration to marker */
-	switch(req.body.lang) {
-	case "C":
-		filename += ".c";
-		break;
-	case "JAVA":
-		filename += ".c";
-		break;
-	case "PYTHON":
-		filename += ".py";
-		break;
-	default:
-		console.log("Error" + req.body);
-		res.send("error");
-	}
-	
 	
 	client.query('SELECT idx,input,output FROM testcase WHERE p_idx ='+ p_idx, (err, psql_response) => {
 		var str ='';
@@ -82,23 +65,23 @@ app.post('/scoring', (req, res) => {
 		testcase = str.replace(/.$/,'\"');
 		
 		fs.writeFile(filename, unescape(req.body.srccode), function(err) {
-		if (err == null) {
-			const stdout = execSync('../marker/build/marker ' 
+			if (err == null) {
+				const stdout = execSync('../marker/build/marker ' 
 									+ req.body.lang + ' ' 
 									+ filename 
 									+ ' 1:536870912 '
 									+ testcase); // TODO: limit compile, run time
-			const data = JSON.stringify({"stdout":stdout});
-			var temp = `${stdout}`;
-			console.log(testcase);
-			console.log(temp);
-			//console.log(JSON.parse(temp).marking); // marking, time (TODO: compile runtime)
-			//console.log(temp.split(','));
-			res.send(temp);
-		} else {
-			console.log("fail");
-		}
-	})
+				const data = JSON.stringify({"stdout":stdout});
+				var temp = `${stdout}`;
+				console.log(testcase);
+				console.log(temp);
+				//console.log(JSON.parse(temp).marking); // marking, time (TODO: compile runtime)
+				//console.log(temp.split(','));
+				res.send(temp);
+			} else {
+				console.log("fail");
+			}
+		})
 	})
 	
 	
