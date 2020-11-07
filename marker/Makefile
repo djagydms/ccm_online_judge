@@ -15,4 +15,5 @@ $(TARGET): $(OBJS)
 	$(CC) -o $@ $(OBJS) -I$(INC_DIR)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(BUILD_DIR)
 	$(CC) -c -o $@ $< -I$(INC_DIR)
