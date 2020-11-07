@@ -14,13 +14,16 @@
 
 ```
 $ cd ccm/backend
-$ npm init
 $ npm install
+
+$ cd ../db
 $ sudo docker-compose up -d
-//db 만들기(init.pgsql 주석 풀어야됨)
 $ sudo docker exec -it psql su -c 'psql -d 'userdb' -U 'gydms' -f /tmp/init/init.pgsql'
+
 $ cd ../marker 
 $ make
+
+$ cd ../backend
 $ sudo node index.js
 ```
 
