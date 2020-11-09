@@ -13,7 +13,7 @@
 ## 설치방법
 
 ```
-$ cd ccm/backend
+$ cd backend
 $ npm install
 
 $ cd ../db
