@@ -1,10 +1,11 @@
 {
   "name": "express-tutorial",
   "version": "1.0.0",
-  "dependencies":
-  {
-    "express": "~4.13.1",
+  "dependencies": {
     "body-parser": "~1.14.2",
-    "express-session": "~1.13.0"
+    "cors": "^2.8.5",
+    "express": "~4.13.1",
+    "express-session": "~1.13.0",
+    "pg": "^8.4.2"
   }
 }

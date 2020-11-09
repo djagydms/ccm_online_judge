@@ -2,33 +2,13 @@ const express = require('express');
 var bodyParser = require('body-parser');
 const fs = require('fs');
 const { Client } = require('pg');
-
+const cors = require('cors');
 const execSync = require('child_process').execSync;
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(function (req, res, next) {
-
-    // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-    // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-    res.setHeader('Access-Control-Allow-Credentials', false);
-
-    // Pass to next layer of middleware
-    next();
-});
-const PORT = 4000;
-
-app.post('')
 
 app.post('/mkproblem', (req, res) => {
 
@@ -75,21 +55,20 @@ app.post('/scoring', (req, res) => {
 									+ filename 
 									+ ' 1:536870912 '
 									+ testcase); // TODO: limit compile, run time
-				const data = JSON.stringify({"stdout":stdout});
 				var temp = `${stdout}`;
-				console.log(testcase);
+				var json = JSON.parse(temp);
 				console.log(temp);
 				//console.log(JSON.parse(temp).marking); // marking, time (TODO: compile runtime)
 				//console.log(temp.split(','));
-				res.send(temp);
+				res.json(json);
 			} else {
 				console.log("fail");
 			}
-		})
-	})
-	
-	
-})
+		});
+	});
+});
+
+const PORT = 4000;
 
 app.listen(PORT, () => {
 	console.log(`API Server listening on port ${PORT}!`);

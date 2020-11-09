@@ -73,7 +73,7 @@ out:
 
 void to_json(struct score score, char *results)
 {
-		sprintf(results, "{\"marking\":%s,\"exectime\":%ld}", 
+		sprintf(results, "{\"marking\":\"%s\",\"exectime\":%ld}", 
 						score.marking, score.exectime);
 }
 
