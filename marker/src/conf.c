@@ -9,8 +9,8 @@
 #include <lang.h>
 #include <testcase.h>
 
-enum lang __select_lang(char *name);
-int __set_file(enum lang lang, char *cur, char *filepath);
+int __select_lang(struct langsw *langsw, char *name);
+int __set_file(struct conf *conf, char *cur, char *filepath);
 struct docker_conf __set_docker_conf(char *filepath, char *docker_confs);
 struct testcase *__set_testcases(char *testcases);
 
@@ -22,12 +22,12 @@ int init_config(int argc, char *argv[], struct conf *conf)
 				fprintf(stderr, "argc: %d\n", argc);
 				return -EINVAL;
 		}
-		conf->lang = __select_lang(argv[1]);
+		conf->lang = __select_lang(conf->langsw, argv[1]);
 		if (conf->lang == -ENODATA) {
 				fprintf(stderr, "Do not support lang: %s\n", argv[1]);
 				return -EINVAL;
 		}
-		ret = __set_file(conf->lang, argv[2], conf->filepath);
+		ret = __set_file(conf, argv[2], conf->filepath);
 		if (ret) {
 				fprintf(stderr, "File creation error: %s\n", argv[2]);
 				return -ret;
@@ -102,11 +102,9 @@ int exec_cmd(char *argv[], char *_stdin, char *_stdout[])
 		}
 }
 
-enum lang __select_lang(char *name)
+int __select_lang(struct langsw *langsw, char *name)
 {
-		enum lang i;
-
-		for (i = C; langsw[i].name != NULL; i++) {
+		for (int i = 0; langsw[i].name != NULL; i++) {
 				if (!strcmp(langsw[i].name, name)) {
 						return i;
 				}
@@ -115,9 +113,11 @@ enum lang __select_lang(char *name)
 		return -ENODATA;
 }
 
-int __set_file(enum lang lang, char *cur, char *filepath)
+int __set_file(struct conf *conf, char *cur, char *filepath)
 {
 		char buffer[PATH_MAX*3];
+		struct langsw *langsw = conf->langsw;
+		int lang = conf->lang;
 		int ret = 0;
 
 		sprintf(buffer, "mv %s %s%s", cur, cur, langsw[lang].ext);

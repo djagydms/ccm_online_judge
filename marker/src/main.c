@@ -6,6 +6,7 @@
 #include <testcase.h>
 #include <limits.h>
 
+void prepare_lang(struct conf *conf);
 void to_json(struct score score, char *results);
 
 /*
@@ -18,6 +19,8 @@ int main(int argc, char *argv[])
 		char results[4096];
 		char temp[PATH_MAX * 2];
 		int ret = 0;
+
+		prepare_lang(&conf);
 
 		/*
 		 * Configurations setting
@@ -32,7 +35,7 @@ int main(int argc, char *argv[])
 		 * Initialize docker
 		 * (create docker container)
 		 */
-		if (ret = langsw[conf.lang].create(&conf)) {
+		if (ret = conf.langsw[conf.lang].create(&conf)) {
 				fprintf(stderr, "docker creation error!\n");
 				goto out;
 		}
@@ -41,7 +44,7 @@ int main(int argc, char *argv[])
 		 * Prepare docker
 		 * (copy source code file, compile(if needed))
 		 */
-		if (ret = langsw[conf.lang].prepare(&conf)) {
+		if (ret = conf.langsw[conf.lang].prepare(&conf)) {
 				fprintf(stderr, "docker prepare error!\n");
 				goto out;
 		}
@@ -49,7 +52,7 @@ int main(int argc, char *argv[])
 		/*
 		 * Testing start using testcase and answer
 		 */
-		if (ret = langsw[conf.lang].exec(&conf, &score)) {
+		if (ret = conf.langsw[conf.lang].exec(&conf, &score)) {
 				fprintf(stderr, "docker exec error!\n");
 				goto out;
 		}
@@ -72,4 +75,13 @@ void to_json(struct score score, char *results)
 {
 		sprintf(results, "{\"marking\":%s,\"exectime\":%ld}", 
 						score.marking, score.exectime);
+}
+
+void prepare_lang(struct conf *conf)
+{
+		for (int i=0; i<MAX_LANG; i++) {
+				if (install[i] == NULL)
+						break;
+				conf->langsw[i] = install[i]();
+		}
 }

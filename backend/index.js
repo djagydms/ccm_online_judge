@@ -38,6 +38,8 @@ app.post('/ranking', (req, res) => {
 
 });
 
+var cnt = 0;
+
 app.post('/scoring', (req, res) => {
 	const client = new Client({
         user: 'gydms',
@@ -49,9 +51,11 @@ app.post('/scoring', (req, res) => {
 	client.connect();
 	
 	/* TODO: proj id directory / user id file */
-	var filename = "test";
+	var filename = "test" + cnt;
 	var p_idx = 2;
 	var testcase = '';
+
+	cnt += 1;
 
 	console.log(req.body);
 	

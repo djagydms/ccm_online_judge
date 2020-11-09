@@ -3,20 +3,7 @@
 
 #include <testcase.h>
 
-#define MAX_LANG		2
-
-enum lang {
-		C = 0,
-		PYTHON
-};
-
-int c_create(void*);
-int c_prepare(void*);
-int c_exec(void*, struct score*);
-
-int python_create(void*);
-int python_prepare(void*);
-int python_exec(void*, struct score*);
+#define MAX_LANG		50
 
 struct langsw {
 		const char *name;
@@ -26,9 +13,12 @@ struct langsw {
 		int (*exec)(void*, struct score*); 
 };
 
-static struct langsw langsw[] = {
-		{"C", ".c", c_create, c_prepare, c_exec},
-		{"PYTHON", ".py", python_create, python_prepare, python_exec}
+struct langsw c_install();
+struct langsw python_install();
+static struct langsw (*install[MAX_LANG])(void) = {
+		c_install,
+		python_install,
+		NULL
 };
 
 #endif

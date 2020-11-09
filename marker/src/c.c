@@ -81,3 +81,16 @@ int c_exec(void *_conf, struct score *score)
 
 		return 0;
 }
+
+struct langsw c_install()
+{
+		struct langsw sw = {
+				.name = "C",
+				.ext = ".c",
+				.create = c_create,
+				.prepare = c_prepare,
+				.exec = c_exec
+		};
+
+		return sw;
+}

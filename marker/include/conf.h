@@ -5,7 +5,6 @@
 #include <testcase.h>
 #include <limits.h>
 
-#define NUM_DOCKER_CONF		3
 #define DEFAULT_CPUS		1
 #define DEFAULT_MEMORY		536870912
 
@@ -20,10 +19,11 @@ struct docker_conf {
 #define DOCKER_PATH			"/usr/bin/docker"
 
 struct conf {
-		enum lang lang;
+		int lang;
 		char filepath[PATH_MAX];
 		struct docker_conf docker_conf;
 		struct testcase *testcases;
+		struct langsw langsw[MAX_LANG];
 };
 
 int init_config(int argc, char **argv, struct conf *config);

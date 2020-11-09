@@ -80,3 +80,16 @@ int python_exec(void *_conf, struct score *score)
 
 		return 0;
 }
+
+struct langsw python_install()
+{
+		struct langsw sw = {
+				.name = "PYTHON",
+				.ext = ".py",
+				.create = python_create,
+				.prepare = python_prepare,
+				.exec = python_exec
+		};
+
+		return sw;
+}
