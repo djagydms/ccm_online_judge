@@ -18,15 +18,23 @@ struct docker_conf {
 #define MARKING_IMAGE		"marking:0.2"
 #define DOCKER_PATH			"/usr/bin/docker"
 
+#define SEC_TO_NSEC			1000000000
+#define NSEC_TO_SEC			1000000000
+
+#define DEFAULT_COMPILE_LIMIT	5000000000
+#define DEFAULT_EXEC_LIMIT		60000000000
+
 struct conf {
 		int lang;
 		char filepath[PATH_MAX];
 		struct docker_conf docker_conf;
 		struct testcase *testcases;
 		struct langsw langsw[MAX_LANG];
+		long long int compile_limit;
+		long long int exec_limit;
 };
 
 int init_config(int argc, char **argv, struct conf *config);
-int exec_cmd(char **argv, char *_stdin, char **_stdout);
+int exec_cmd(char **argv, char *_stdin, char **_stdout, int limit_time);
 
 #endif

@@ -26,7 +26,7 @@ int python_create(void *_conf)
 		args[7] = MARKING_IMAGE;
 		args[8] = NULL;
 
-		return exec_cmd(args, NULL, NULL);
+		return exec_cmd(args, NULL, NULL, 0);
 }
 
 int python_prepare(void *_conf)
@@ -39,7 +39,7 @@ int python_prepare(void *_conf)
 		args[3] = buffer;
 		args[4] = NULL;
 
-		return exec_cmd(args, NULL, NULL);
+		return exec_cmd(args, NULL, NULL, 0);
 }
 
 int python_exec(void *_conf, struct score *score)
@@ -59,11 +59,17 @@ int python_exec(void *_conf, struct score *score)
 		score->exectime = 0;
 		while (testcase != NULL) {
 				gettimeofday(&start_time, NULL);
-				exec_cmd(args, testcase->_case, &ret_ans);
+				score->status = exec_cmd(args, testcase->_case, &ret_ans, conf->exec_limit);
 				gettimeofday(&end_time, NULL);
 
 				score->exectime += end_time.tv_usec > start_time.tv_usec ? 
 						end_time.tv_usec - start_time.tv_usec : 0;
+
+				if (score->exectime > conf->exec_limit)
+						score->status = -ETIMEDOUT;
+
+				if (score->status)
+						break;
 
 				if (ret_ans[strlen(ret_ans)-1] == '\n' ||
 								ret_ans[strlen(ret_ans)-1] == '\r')

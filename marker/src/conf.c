@@ -13,13 +13,17 @@ int __select_lang(struct langsw *langsw, char *name);
 int __set_file(struct conf *conf, char *cur, char *filepath);
 struct docker_conf __set_docker_conf(char *filepath, char *docker_confs);
 struct testcase *__set_testcases(char *testcases);
+long long int __set_compile_limit(char *time);
+long long int __set_exec_limit(char *time);
 
 int init_config(int argc, char *argv[], struct conf *conf)
 {
 		int ret = 0;
 
-		if (argc != 5) {
-				fprintf(stderr, "argc: %d\n", argc);
+		if (argc != 7) {
+				fprintf(stderr, "argc: %d\n"
+								"Usage: marker [lang] [filepath] [docker_conf] "
+								"[testcases] [compile_limit] [exec_limit]\n", argc);
 				return -EINVAL;
 		}
 		conf->lang = __select_lang(conf->langsw, argv[1]);
@@ -39,18 +43,27 @@ int init_config(int argc, char *argv[], struct conf *conf)
 				fprintf(stderr, "Test cases error: %s\n", argv[4]);
 				return -EINVAL;
 		}
+		conf->compile_limit = __set_compile_limit(argv[5]);
+		conf->exec_limit = __set_exec_limit(argv[6]);
 
 		return ret;
 }
 
-int exec_cmd(char *argv[], char *_stdin, char *_stdout[])
+pid_t pid;
+int timeout;
+
+void timer_handler(int signum) {
+		timeout = 1;
+		kill(pid, SIGKILL);
+}
+
+int exec_cmd(char *argv[], char *_stdin, char *_stdout[], int limit_time)
 {
-		pid_t pid;
-		int status;
 		int inp_fd, out_fd;
 		char tmp[255];
 		int fd1[2];
 		int fd2[2];
+		int status;
 
 		if (_stdin != NULL) {
 				if (pipe(fd1) < 0 || pipe(fd2) < 0) {
@@ -58,6 +71,9 @@ int exec_cmd(char *argv[], char *_stdin, char *_stdout[])
 						return -EFAULT;
 				}
 		}
+
+		timeout = 0;
+		signal(SIGALRM, timer_handler);
 
 		pid = fork();
 		if (pid < 0) {
@@ -82,12 +98,16 @@ int exec_cmd(char *argv[], char *_stdin, char *_stdout[])
 				/* Parent */
 				if (_stdin != NULL) {
 						close(fd1[0]);
-						write(fd1[1], _stdin, strlen(_stdin)+1);
+						write(fd1[1], _stdin, strlen(_stdin));
 						close(fd1[1]);
 				}
+				alarm(limit_time / NSEC_TO_SEC);
 				if (wait(&status) < 0) {
 						fprintf(stderr, "Cannot wait pid %d\n", pid);
 						return -EFAULT;
+				}
+				if (timeout) {
+						return -ETIMEDOUT;
 				}
 				if (_stdout != NULL) {
 						char buffer[65536];
@@ -100,6 +120,8 @@ int exec_cmd(char *argv[], char *_stdin, char *_stdout[])
 						return status;
 				}
 		}
+
+		return 0;
 }
 
 int __select_lang(struct langsw *langsw, char *name)
@@ -199,5 +221,23 @@ struct testcase *__set_testcases(char *testcases)
 		}
 
 		return head;
+}
+
+long long int __set_compile_limit(char *time)
+{
+		long long int limit_time = atoi(time) * SEC_TO_NSEC;
+		if (!limit_time)
+				limit_time = DEFAULT_COMPILE_LIMIT;
+
+		return limit_time;
+}
+
+long long int __set_exec_limit(char *time)
+{
+		long long int limit_time = atoi(time) * SEC_TO_NSEC;
+		if (!limit_time)
+				limit_time = DEFAULT_EXEC_LIMIT;
+
+		return limit_time;
 }
 

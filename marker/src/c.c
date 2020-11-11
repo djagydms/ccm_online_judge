@@ -26,7 +26,7 @@ int c_create(void *_conf)
 		args[7] = MARKING_IMAGE;
 		args[8] = NULL;
 
-		return exec_cmd(args, NULL, NULL);
+		return exec_cmd(args, NULL, NULL, 0);
 }
 
 int c_prepare(void *_conf)
@@ -42,10 +42,10 @@ int c_prepare(void *_conf)
 		args[3] = buffer;
 		args[4] = NULL;
 
-		if (ret = exec_cmd(args, NULL, NULL))
+		if (ret = exec_cmd(args, NULL, NULL, 0))
 				return ret;
 
-		return exec_cmd(args2, NULL, NULL);
+		return exec_cmd(args2, NULL, NULL, conf->compile_limit);
 }
 
 int c_exec(void *_conf, struct score *score)
@@ -65,11 +65,21 @@ int c_exec(void *_conf, struct score *score)
 		score->exectime = 0;
 		while (testcase != NULL) {
 				gettimeofday(&start_time, NULL);
-				exec_cmd(args, testcase->_case, &ret_ans);
+				score->status = exec_cmd(args, testcase->_case, &ret_ans, conf->exec_limit);
 				gettimeofday(&end_time, NULL);
 
 				score->exectime += end_time.tv_usec > start_time.tv_usec ? 
 						end_time.tv_usec - start_time.tv_usec : 0;
+
+				if (score->exectime > conf->exec_limit)
+						score->status = -ETIMEDOUT;
+
+				if (score->status)
+						break;
+
+				if (ret_ans[strlen(ret_ans)-1] == '\n' ||
+								ret_ans[strlen(ret_ans)-1] == '\r')
+						ret_ans[strlen(ret_ans)-1] = '\0';
 
 				score->marking[numans++] =
 						strcmp(testcase->_ans, ret_ans) ? 'x' : 'o';

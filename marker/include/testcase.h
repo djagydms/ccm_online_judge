@@ -10,6 +10,7 @@ struct testcase {
 };
 
 struct score {
+		int status;
 		char marking[MAX_CASE];
 		long exectime;
 };

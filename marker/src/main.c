@@ -10,7 +10,7 @@ void prepare_lang(struct conf *conf);
 void to_json(struct score score, char *results);
 
 /*
- * ./marker [language] [filepath] [docker_conf] [testcases]
+ * ./marker [lang] [filepath] [docker_conf] [testcases] [compile_limit] [exec_limit]
  */
 int main(int argc, char *argv[])
 {
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 		 */
 		if (ret = init_config(argc, argv, &conf)) {
 				fprintf(stderr, "confuration error!\n");
-				goto out;
+				goto conf_out;
 		}
 
 		/*
@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 				goto out;
 		}
 
+		score.status = 0;
 		/*
 		 * Testing start using testcase and answer
 		 */
@@ -63,18 +64,18 @@ int main(int argc, char *argv[])
 		to_json(score, results);
 		printf("%s\n", results);
 out:
-		free_testcases(conf.testcases);
 		fclose(stdout);
 		sprintf(temp, "docker rm -f %s", conf.docker_conf.name);
 		system(temp);
-
+conf_out:
+		free_testcases(conf.testcases);
 		return ret;
 }
 
 void to_json(struct score score, char *results)
 {
-		sprintf(results, "{\"marking\":\"%s\",\"exectime\":%ld}", 
-						score.marking, score.exectime);
+		sprintf(results, "{\"status\":%d,\"marking\":\"%s\",\"exectime\":%ld}", 
+						score.status, score.marking, score.exectime);
 }
 
 void prepare_lang(struct conf *conf)
