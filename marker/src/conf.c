@@ -57,7 +57,7 @@ void timer_handler(int signum) {
 		kill(pid, SIGKILL);
 }
 
-int exec_cmd(char *argv[], char *_stdin, char *_stdout[], int limit_time)
+int exec_cmd(char *argv[], char *_stdin, char *_stdout[], long long int limit_time)
 {
 		int inp_fd, out_fd;
 		char tmp[255];
@@ -116,12 +116,9 @@ int exec_cmd(char *argv[], char *_stdin, char *_stdout[], int limit_time)
 						read(fd2[0], buffer, sizeof(buffer));
 						strcpy(*_stdout, buffer);
 				}
-				if (status) {
-						return status;
-				}
 		}
 
-		return 0;
+		return status;
 }
 
 int __select_lang(struct langsw *langsw, char *name)
@@ -180,7 +177,7 @@ struct testcase *__set_testcases(char *testcases)
 		char *_ans;
 		char *copycases = NULL;
 
-		copycases = malloc(sizeof(testcases));
+		copycases = malloc(sizeof(testcases)*10);
 		if (!copycases) {
 				return NULL;
 		}

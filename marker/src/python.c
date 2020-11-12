@@ -75,7 +75,6 @@ int python_exec(void *_conf, struct score *score)
 								ret_ans[strlen(ret_ans)-1] == '\r')
 						ret_ans[strlen(ret_ans)-1] = '\0';
 
-
 				score->marking[numans++] =
 						strcmp(testcase->_ans, ret_ans) ? 'x' : 'o';
 				assert(numans < MAX_CASE);

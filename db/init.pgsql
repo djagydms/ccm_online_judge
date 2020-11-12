@@ -1,29 +1,34 @@
 -- CREATE EXTENSION pgcrypto;
 
+-- DROP TABLE testcase;
+-- DROP TABLE problem;
+-- DROP TABLE userlog;
 
 -- CREATE TABLE problem (
 -- p_idx INT PRIMARY KEY,
--- testCnt INT NOT NULL,
--- compileLimit INT,
--- codeSizeLimit INT,
+-- userID TEXT NOT NULL,
+-- explanation TEXT NOT NULL,
+-- compileLimit INT NOT NULL,
+-- runLimit INT NOT NULL,
 -- created_on TIMESTAMP NOT NULL
 -- );
 
 
 -- CREATE TABLE testcase (
--- idx INT PRIMARY KEY,
+-- idx SERIAL PRIMARY KEY,
 -- p_idx INT NOT NULL,
 -- input TEXT NOT NULL,
--- output TEXT NOT NULL,
--- created_on TIMESTAMP NOT NULL
+-- output TEXT NOT NULL
 -- );
 
 -- CREATE TABLE userlog(
--- p_idx INT PRIMARY KEY,
+-- idx SERIAL PRIMARY KEY,
+-- p_idx INT NOT NULL,
+-- lang TEXT NOT NULL,
 -- userID TEXT NOT NULL,
--- passCase INT NOT NULL,
--- compileTime INT,
--- codeSize INT,
+-- testcase TEXT NOT NULL,
+-- compiletime INT,
+-- runtime INT NOT NULL,
 -- created_on TIMESTAMP NOT NULL
 -- );
 
@@ -35,18 +40,18 @@
 -- '2020-09-23 10:18:30'
 -- );
 
-INSERT INTO testcase (p_idx,idx,input,output,created_on) VALUES (
-'2',
-'3',
-'hi',
-'hi',
-now()
-);
+-- INSERT INTO testcase (p_idx,idx,input,output,created_on) VALUES (
+-- '2',
+-- '3',
+-- 'hi',
+-- 'hi',
+-- now()
+-- );
 
-INSERT INTO testcase (p_idx,idx,input,output,created_on) VALUES (
-'2',
-'4',
-'hello',
-'hello',
-now()
-);
+-- INSERT INTO testcase (p_idx,idx,input,output,created_on) VALUES (
+-- '2',
+-- '4',
+-- 'hello',
+-- 'hello',
+-- now()
+-- );
