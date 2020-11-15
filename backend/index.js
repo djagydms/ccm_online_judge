@@ -108,16 +108,15 @@ app.post('/scoring', (req, res) => {
 						if (err == null) {
 							const stdout = execSync('../marker/build/marker ' 
 												+ req.body.lang + ' ' 
-												+ filename 
-												+ ' 1:536870912 '
+												+ filename + ' '
+												+ ": "
+												+ '1:536870912 '
 												+ testcase + ' '
 												+ climit + ' '
 												+ rlimit );
 							var temp = `${stdout}`;
 							var json = JSON.parse(temp);
 							console.log(temp);
-							//console.log(JSON.parse(temp).marking); // marking, time (TODO: compile runtime)
-							//console.log(temp.split(','));
 							res.json(json);
 						} else {
 							console.log("fail");
