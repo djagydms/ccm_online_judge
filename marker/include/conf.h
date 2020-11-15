@@ -15,7 +15,7 @@ struct docker_conf {
 };
 
 #define CONF_DELIMETER		":"
-#define MARKING_IMAGE		"marking:0.2"
+#define MARKING_IMAGE		"djagydms/marking:0.1"
 #define DOCKER_PATH			"/usr/bin/docker"
 
 #define SEC_TO_NSEC			(long long int)1000000000
