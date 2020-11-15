@@ -25,7 +25,7 @@ app.post('/mkproblem', (req, res) => {
 	console.log(req.body);
 	var moment = require('moment');
 	const sql = "INSERT INTO problem (p_idx,userid,explanation,compilelimit,runlimit,created_on)VALUES($1, $2, $3, $4, $5, $6) RETURNING *";
-	const values = [req.body.number, req.body.userID, req.body.explanation, 0, 0, `${moment().format("YYYY-MM-DD HH:mm")}`]
+	const values = [req.body.number, req.body.userID, req.body.explanation, req.body.c_time, req.body.r_time, `${moment().format("YYYY-MM-DD HH:mm")}`]
 
 
 	client.query(sql,values,(err, psql_response)=>{
@@ -96,7 +96,6 @@ app.post('/scoring', (req, res) => {
 				// TODO: passing the delimeter to marker (ex, : in testcase)
 			}
 			testcase = str.replace(/.$/,'\"');
-			console.log(testcase);
 
 			client.query('SELECT compilelimit, runlimit FROM problem WHERE p_idx ='+ req.body.number, (err, psql_response) => {
 				if (err) {
