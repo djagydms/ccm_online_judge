@@ -11,8 +11,8 @@
 
 int __select_lang(struct langsw *langsw, char *name);
 int __set_file(struct conf *conf, char *cur, char *filepath);
-struct docker_conf __set_docker_conf(char *filepath, char *docker_confs);
-struct testcase *__set_testcases(char *testcases);
+struct docker_conf __set_docker_conf(char *filepath, char *docker_confs, char *delimeter);
+struct testcase *__set_testcases(char *testcases, char *delimeter);
 long long int __set_compile_limit(char *time);
 long long int __set_exec_limit(char *time);
 
@@ -20,9 +20,9 @@ int init_config(int argc, char *argv[], struct conf *conf)
 {
 		int ret = 0;
 
-		if (argc != 7) {
+		if (argc != 8) {
 				fprintf(stderr, "argc: %d\n"
-								"Usage: marker [lang] [filepath] [docker_conf] "
+								"Usage: marker [lang] [filepath] [delimeter] [docker_conf] "
 								"[testcases] [compile_limit] [exec_limit]\n", argc);
 				return -EINVAL;
 		}
@@ -36,15 +36,16 @@ int init_config(int argc, char *argv[], struct conf *conf)
 				fprintf(stderr, "File creation error: %s\n", argv[2]);
 				return -ret;
 		}
+		conf->delimeter = argv[3];
 		/* __set_docker_conf() do not causes error */
-		conf->docker_conf = __set_docker_conf(conf->filepath, argv[3]);
-		conf->testcases = __set_testcases(argv[4]);
+		conf->docker_conf = __set_docker_conf(conf->filepath, argv[4], conf->delimeter);
+		conf->testcases = __set_testcases(argv[5], conf->delimeter);
 		if (conf->testcases == NULL) {
-				fprintf(stderr, "Test cases error: %s\n", argv[4]);
+				fprintf(stderr, "Test cases error: %s\n", argv[5]);
 				return -EINVAL;
 		}
-		conf->compile_limit = __set_compile_limit(argv[5]);
-		conf->exec_limit = __set_exec_limit(argv[6]);
+		conf->compile_limit = __set_compile_limit(argv[6]);
+		conf->exec_limit = __set_exec_limit(argv[7]);
 
 		return ret;
 }
@@ -148,19 +149,19 @@ int __set_file(struct conf *conf, char *cur, char *filepath)
 		return ret;
 }
 
-struct docker_conf __set_docker_conf(char *filepath, char *docker_confs)
+struct docker_conf __set_docker_conf(char *filepath, char *docker_confs, char *delimeter)
 {
 		struct docker_conf conf;
 		char *ptr;
 
 		sprintf(conf.name, "%s", filepath);
 
-		ptr = strtok(docker_confs, CONF_DELIMETER);
+		ptr = strtok(docker_confs, delimeter);
 		conf.cpus = atoi(ptr);
 		if (!conf.cpus)
 				conf.cpus = DEFAULT_CPUS;
 
-		ptr = strtok(NULL, CONF_DELIMETER);
+		ptr = strtok(NULL, delimeter);
 		conf.memory = atoi(ptr);
 		if (!conf.memory)
 				conf.memory = DEFAULT_MEMORY;
@@ -168,7 +169,7 @@ struct docker_conf __set_docker_conf(char *filepath, char *docker_confs)
 		return conf;
 }
 
-struct testcase *__set_testcases(char *testcases)
+struct testcase *__set_testcases(char *testcases, char *delimeter)
 {
 		struct testcase *head = NULL;
 		struct testcase *tail;
@@ -183,9 +184,9 @@ struct testcase *__set_testcases(char *testcases)
 		}
 		strcpy(copycases, testcases);
 
-		_case = strtok(copycases, CONF_DELIMETER);
+		_case = strtok(copycases, delimeter);
 		while (_case != NULL) {
-				_ans = strtok(NULL, CONF_DELIMETER);
+				_ans = strtok(NULL, delimeter);
 
 				if (_ans == NULL) {
 						while (tail != NULL) {
@@ -214,7 +215,7 @@ struct testcase *__set_testcases(char *testcases)
 						tail->next = tmp;
 						tail = tmp;
 				}
-				_case = strtok(NULL, CONF_DELIMETER);
+				_case = strtok(NULL, delimeter);
 		}
 
 		return head;

@@ -14,7 +14,6 @@ struct docker_conf {
 		unsigned int memory;
 };
 
-#define CONF_DELIMETER		":"
 #define MARKING_IMAGE		"djagydms/marking:0.1"
 #define DOCKER_PATH			"/usr/bin/docker"
 
@@ -27,6 +26,7 @@ struct docker_conf {
 struct conf {
 		int lang;
 		char filepath[PATH_MAX];
+		char *delimeter;
 		struct docker_conf docker_conf;
 		struct testcase *testcases;
 		struct langsw langsw[MAX_LANG];
