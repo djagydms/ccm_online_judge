@@ -68,7 +68,25 @@ app.post('/getproblem', (req, res) => {
 });
 
 app.post('/ranking', (req, res) => {
-
+	console.log(req.body.lang);
+	
+	client.query("SELECT userid, runtime FROM userlog WHERE lang ='"+req.body.lang+"' AND p_idx ="+ req.body.p_number+" AND testcase NOT LIKE '%x%' ORDER BY runtime", (err, psql_response) => {
+		
+		var temp ='{"rank": [' ;
+		
+		if (err) {
+			console.log(err.stack)
+		} else {
+			psql_response.rows.forEach(function(element) {
+				temp += '{"id":"'+element.userid+'", "time":"'+element.runtime+'"},'
+			});
+			temp = temp.replace(/.$/,'');
+			temp +=']}'
+			var ret = JSON.parse(temp);
+			console.log(ret);
+			res.json(ret);
+		}
+	});
 });
 
 var cnt = 0;
@@ -117,6 +135,17 @@ app.post('/scoring', (req, res) => {
 							var temp = `${stdout}`;
 							var json = JSON.parse(temp);
 							console.log(temp);
+							var moment = require('moment');
+							const sql = "INSERT INTO userlog (p_idx,lang,userid,testcase,compiletime,runtime,created_on)VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+							const values = [req.body.number, req.body.lang ,req.body.userID,json.marking,null,json.exectime,`${moment().format("YYYY-MM-DD HH:mm")}`]						
+
+							client.query(sql,values,(err, psql_response)=>{
+								if (err) {
+									console.log(err.stack)
+								} else {
+									console.log(psql_response.rows[0])
+								}
+							});
 							res.json(json);
 						} else {
 							console.log("fail");
