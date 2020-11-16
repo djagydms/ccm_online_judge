@@ -6,7 +6,7 @@
 #include <limits.h>
 
 #define DEFAULT_CPUS		1
-#define DEFAULT_MEMORY		536870912
+#define DEFAULT_MEMORY		536870912 // 512MB
 
 struct docker_conf {
 		char name[PATH_MAX];
@@ -20,12 +20,13 @@ struct docker_conf {
 #define SEC_TO_NSEC			(long long int)1000000000
 #define NSEC_TO_SEC			(long long int)1000000000
 
-#define DEFAULT_COMPILE_LIMIT	(long long int)5000000000
-#define DEFAULT_EXEC_LIMIT		(long long int)60000000000
+#define DEFAULT_COMPILE_LIMIT	(long long int)5000000000  // 5sec
+#define DEFAULT_EXEC_LIMIT		(long long int)60000000000 // 60sec
 
 struct conf {
 		int lang;
 		char filepath[PATH_MAX];
+		char filename[PATH_MAX];
 		char *delimeter;
 		struct docker_conf docker_conf;
 		struct testcase *testcases;

@@ -8,34 +8,13 @@
 #include <testcase.h>
 #include <limits.h>
 
-int python_create(void *_conf)
-{
-		struct conf *conf = _conf;
-		char *args[9] = {DOCKER_PATH, "run", "-t", "-d",};
-		char name[PATH_MAX * 2];
-		char cpus[32];
-		char memory[32];
-
-		sprintf(name, "--name=%s", conf->docker_conf.name);
-		sprintf(cpus, "--cpus=%d", conf->docker_conf.cpus);
-		sprintf(memory, "--memory=%d", conf->docker_conf.memory);
-
-		args[4] = name;
-		args[5] = cpus;
-		args[6] = memory;
-		args[7] = MARKING_IMAGE;
-		args[8] = NULL;
-
-		return exec_cmd(args, NULL, NULL, 0);
-}
-
 int python_prepare(void *_conf)
 {
 		struct conf *conf = _conf;
 		char *args[5] = {DOCKER_PATH, "cp", conf->filepath,};
 		char buffer[PATH_MAX * 2];
 
-		sprintf(buffer, "%s:/", conf->docker_conf.name);
+		sprintf(buffer, "%s:marking", conf->docker_conf.name);
 		args[3] = buffer;
 		args[4] = NULL;
 
@@ -47,7 +26,7 @@ int python_exec(void *_conf, struct score *score)
 		struct conf *conf = _conf;
 		struct testcase *testcase = conf->testcases;
 		char *args[7] = {DOCKER_PATH, "exec", "-i", 
-				conf->docker_conf.name, "python3", conf->filepath, NULL};
+				conf->docker_conf.name, "python3", conf->filename, NULL};
 		struct timeval start_time, end_time;
 		char *ret_ans;
 		int numans = 0;
@@ -91,7 +70,6 @@ struct langsw python_install()
 		struct langsw sw = {
 				.name = "PYTHON",
 				.ext = ".py",
-				.create = python_create,
 				.prepare = python_prepare,
 				.exec = python_exec
 		};

@@ -11,7 +11,8 @@
 
 int __select_lang(struct langsw *langsw, char *name);
 int __set_file(struct conf *conf, char *cur, char *filepath);
-struct docker_conf __set_docker_conf(char *filepath, char *docker_confs, char *delimeter);
+void __set_filename(char *filename, char *filepath);
+int __set_docker_conf(struct docker_conf *conf, char *delimeter, char *docker_confs);
 struct testcase *__set_testcases(char *testcases, char *delimeter);
 long long int __set_compile_limit(char *time);
 long long int __set_exec_limit(char *time);
@@ -36,9 +37,14 @@ int init_config(int argc, char *argv[], struct conf *conf)
 				fprintf(stderr, "File creation error: %s\n", argv[2]);
 				return -ret;
 		}
+		__set_filename(conf->filename, conf->filepath);
 		conf->delimeter = argv[3];
 		/* __set_docker_conf() do not causes error */
-		conf->docker_conf = __set_docker_conf(conf->filepath, argv[4], conf->delimeter);
+		ret = __set_docker_conf(&conf->docker_conf, conf->delimeter, argv[4]);
+		if (ret) {
+				fprintf(stderr, "Docker configuration error: %s\n", argv[2]);
+				return -ret;
+		}
 		conf->testcases = __set_testcases(argv[5], conf->delimeter);
 		if (conf->testcases == NULL) {
 				fprintf(stderr, "Test cases error: %s\n", argv[5]);
@@ -149,24 +155,41 @@ int __set_file(struct conf *conf, char *cur, char *filepath)
 		return ret;
 }
 
-struct docker_conf __set_docker_conf(char *filepath, char *docker_confs, char *delimeter)
+void __set_filename(char *filename, char *filepath)
 {
-		struct docker_conf conf;
+		char *tmp = NULL;
+
+		strcpy(filename, filepath);
+
+		tmp = strtok(filename, "/");
+		filename = tmp;
+		while (tmp != NULL) {
+				filename = tmp;
+				tmp = strtok(NULL, "/");
+		}
+}
+
+int __set_docker_conf(struct docker_conf *conf, char *delimeter, char *docker_confs)
+{
 		char *ptr;
 
-		sprintf(conf.name, "%s", filepath);
-
 		ptr = strtok(docker_confs, delimeter);
-		conf.cpus = atoi(ptr);
-		if (!conf.cpus)
-				conf.cpus = DEFAULT_CPUS;
+		if (!ptr)
+				return -ENODATA;
+
+		sprintf(conf->name, "%s", ptr);
 
 		ptr = strtok(NULL, delimeter);
-		conf.memory = atoi(ptr);
-		if (!conf.memory)
-				conf.memory = DEFAULT_MEMORY;
+		conf->cpus = atoi(ptr);
+		if (!conf->cpus)
+				conf->cpus = DEFAULT_CPUS;
 
-		return conf;
+		ptr = strtok(NULL, delimeter);
+		conf->memory = atoi(ptr) * 1024 * 1024;
+		if (!conf->memory)
+				conf->memory = DEFAULT_MEMORY;
+
+		return 0;
 }
 
 struct testcase *__set_testcases(char *testcases, char *delimeter)

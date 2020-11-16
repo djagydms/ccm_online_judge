@@ -5,6 +5,7 @@ const { Client } = require('pg');
 const cors = require('cors');
 const { networkInterfaces } = require('os');
 const execSync = require('child_process').execSync;
+const Queue = require('queue');
 
 const app = express();
 app.use(cors());
@@ -89,6 +90,8 @@ app.post('/ranking', (req, res) => {
 	});
 });
 
+var queue = Queue();
+
 var cnt = 0;
 
 app.post('/scoring', (req, res) => {
@@ -124,34 +127,41 @@ app.post('/scoring', (req, res) => {
 					
 					fs.writeFile(filename, unescape(req.body.srccode), function(err) {
 						if (err == null) {
-							const stdout = execSync('../marker/build/marker ' 
+							var container = queue.pop();
+							var stdout;
+							try {
+									stdout = execSync('../marker/build/marker ' 
 												+ req.body.lang + ' ' 
 												+ filename + ' '
 												+ ": "
-												+ '1:536870912 '
+												+ container + ':'
+												+ '1:512 '
 												+ testcase + ' '
 												+ climit + ' '
 												+ rlimit );
-							var temp = `${stdout}`;
-							var json = JSON.parse(temp);
-							console.log(temp);
-							var moment = require('moment');
-							const sql = "INSERT INTO userlog (p_idx,lang,userid,testcase,compiletime,runtime,created_on)VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *";
-							const values = [req.body.number, req.body.lang ,req.body.userID,json.marking,null,json.exectime,`${moment().format("YYYY-MM-DD HH:mm")}`]						
+									queue.push(container);
+									var temp = `${stdout}`;
+									var json = JSON.parse(temp);
+									console.log(temp);
+									var moment = require('moment');
+									const sql = "INSERT INTO userlog (p_idx,lang,userid,testcase,compiletime,runtime,created_on)VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+									const values = [req.body.number, req.body.lang ,req.body.userID,json.marking,null,json.exectime,`${moment().format("YYYY-MM-DD HH:mm")}`]						
 
-							client.query(sql,values,(err, psql_response)=>{
-								if (err) {
-									console.log(err.stack)
-								} else {
-									console.log(psql_response.rows[0])
-								}
-							});
-							res.json(json);
-						} else {
+									client.query(sql,values,(err, psql_response)=>{
+									if (err) {
+											console.log(err.stack)
+									} else {
+											console.log(psql_response.rows[0])
+									}
+									});
+									res.json(json);
+							} catch (error) {
+									res.json("{\"status\":"+error+"}");
+							}
+					} else {
 							console.log("fail");
 						}
 					});
-					
 				}
 			});
 		}
@@ -163,5 +173,6 @@ const PORT = 4000;
 
 app.listen(PORT, () => {
 	console.log(`API Server listening on port ${PORT}!`);
+	queue.push("build1", "build2", "build3");
 });
 

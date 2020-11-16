@@ -8,44 +8,23 @@
 #include <testcase.h>
 #include <limits.h>
 
-int c_create(void *_conf)
-{
-		struct conf *conf = _conf;
-		char *args[9] = {DOCKER_PATH, "run", "-t", "-d",};
-		char name[PATH_MAX * 2];
-		char cpus[32];
-		char memory[32];
-
-		sprintf(name, "--name=%s", conf->docker_conf.name);
-		sprintf(cpus, "--cpus=%d", conf->docker_conf.cpus);
-		sprintf(memory, "--memory=%d", conf->docker_conf.memory);
-
-		args[4] = name;
-		args[5] = cpus;
-		args[6] = memory;
-		args[7] = MARKING_IMAGE;
-		args[8] = NULL;
-
-		return exec_cmd(args, NULL, NULL, 0);
-}
-
 int c_prepare(void *_conf)
 {
 		struct conf *conf = _conf;
 		char *args[5] = {DOCKER_PATH, "cp", conf->filepath,};
-		char *args2[] = {DOCKER_PATH, "exec", 
-				conf->docker_conf.name, "gcc", conf->filepath, NULL};
+		char *args1[] = {DOCKER_PATH, "exec", 
+				conf->docker_conf.name, "gcc", conf->filename, NULL};
 		char buffer[PATH_MAX * 2];
 		int ret;
 
-		sprintf(buffer, "%s:/", conf->docker_conf.name);
+		sprintf(buffer, "%s:marking", conf->docker_conf.name);
 		args[3] = buffer;
 		args[4] = NULL;
 
 		if (ret = exec_cmd(args, NULL, NULL, 0))
 				return ret;
 
-		return exec_cmd(args2, NULL, NULL, conf->compile_limit);
+		return exec_cmd(args1, NULL, NULL, conf->compile_limit);
 }
 
 int c_exec(void *_conf, struct score *score)
@@ -97,7 +76,6 @@ struct langsw c_install()
 		struct langsw sw = {
 				.name = "C",
 				.ext = ".c",
-				.create = c_create,
 				.prepare = c_prepare,
 				.exec = c_exec
 		};

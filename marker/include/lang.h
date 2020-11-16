@@ -8,7 +8,6 @@
 struct langsw {
 		const char *name;
 		const char *ext;
-		int (*create)(void*);
 		int (*prepare)(void*);
 		int (*exec)(void*, struct score*); 
 };

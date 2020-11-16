@@ -8,6 +8,8 @@
 
 void prepare_lang(struct conf *conf);
 void to_json(struct score score, char *results);
+int update_container(struct docker_conf conf);
+void clear_container(char *name, char *filepath);
 
 /*
  * ./marker [lang] [filepath] [docker_conf] [testcases] [compile_limit] [exec_limit]
@@ -17,7 +19,6 @@ int main(int argc, char *argv[])
 		struct conf conf;
 		struct score score;
 		char results[4096];
-		char temp[PATH_MAX * 2];
 		int ret = 0;
 
 		prepare_lang(&conf);
@@ -32,12 +33,12 @@ int main(int argc, char *argv[])
 		}
 
 		/*
-		 * Initialize docker
-		 * (create docker container)
+		 * Container setup and start
+		 * (cpu, memory)
 		 */
-		if (ret = conf.langsw[conf.lang].create(&conf)) {
-				fprintf(stderr, "docker creation error!\n");
-				goto out;
+		if (ret = update_container(conf.docker_conf)) {
+				fprintf(stderr, "container update error!\n");
+				goto conf_out;
 		}
 
 		/*
@@ -65,8 +66,7 @@ int main(int argc, char *argv[])
 		printf("%s\n", results);
 out:
 		fclose(stdout);
-		sprintf(temp, "docker rm -f %s", conf.docker_conf.name);
-		system(temp);
+		clear_container(conf.docker_conf.name, conf.filename);
 conf_out:
 		free_testcases(conf.testcases);
 		return ret;
@@ -85,4 +85,37 @@ void prepare_lang(struct conf *conf)
 						break;
 				conf->langsw[i] = install[i]();
 		}
+}
+
+int update_container(struct docker_conf conf)
+{
+		char *args[6] = {DOCKER_PATH, "update",};
+		char *args1[] = {DOCKER_PATH, "start", conf.name, NULL};
+		char cpus[32];
+		char memory[32];
+		int ret;
+
+		sprintf(cpus, "--cpus=%d", conf.cpus);
+		sprintf(memory, "--memory=%d", conf.memory);
+
+		args[2] = cpus;
+		args[3] = memory;
+		args[4] = conf.name;
+		args[5] = NULL;
+
+		if (ret = exec_cmd(args, NULL, NULL, 0))
+				return ret;
+
+		return exec_cmd(args1, NULL, NULL, 0);
+
+}
+
+void clear_container(char *name, char *filename)
+{
+		char temp[PATH_MAX * 2];
+	
+		sprintf(temp, "docker exec %s rm -f a.out", name);
+		system(temp);
+		sprintf(temp, "docker exec %s rm -f %s", name, filename);
+		system(temp);
 }
