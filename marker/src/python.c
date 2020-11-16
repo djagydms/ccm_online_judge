@@ -31,6 +31,8 @@ int python_exec(void *_conf, struct score *score)
 		char *ret_ans;
 		int numans = 0;
 
+		fprintf(stderr, "%s\n", conf->filename);
+
 		ret_ans = malloc(65536);
 		if (ret_ans == NULL)
 				return -ENOMEM;

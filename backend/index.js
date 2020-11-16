@@ -98,7 +98,7 @@ app.post('/scoring', (req, res) => {
 	
 	
 	/* TODO: proj id directory / user id file */
-	var filename = "test" + cnt;
+	var filename = "/tmp/marking" + cnt;
 	var testcase = '';
 
 	cnt += 1;
@@ -130,7 +130,7 @@ app.post('/scoring', (req, res) => {
 							var container = queue.pop();
 							var stdout;
 							try {
-									stdout = execSync('../marker/build/marker ' 
+									stdout = execSync('../marker/build/marker '
 												+ req.body.lang + ' ' 
 												+ filename + ' '
 												+ ": "

@@ -157,14 +157,15 @@ int __set_file(struct conf *conf, char *cur, char *filepath)
 
 void __set_filename(char *filename, char *filepath)
 {
+		char strtok_tmp[PATH_MAX];
 		char *tmp = NULL;
 
-		strcpy(filename, filepath);
+		strcpy(strtok_tmp, filepath);
 
-		tmp = strtok(filename, "/");
-		filename = tmp;
+		tmp = strtok(strtok_tmp, "/");
+		strcpy(filename, tmp);
 		while (tmp != NULL) {
-				filename = tmp;
+				strcpy(filename, tmp);
 				tmp = strtok(NULL, "/");
 		}
 }
