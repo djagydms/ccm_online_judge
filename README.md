@@ -52,14 +52,6 @@ static struct langsw (*install[MAX_LANG])(void) = {
 ### X.c에 X언어의 create, prepare, exec 함수 정의
 ``` c
 /* marker/src/X.c */
-int X_create(void *_conf)
-{
-		struct conf *conf = _conf;
-
-		/* 도커 컨테이너 생성 */
-
-		return exec_cmd(args, NULL, NULL, 0);
-}
 
 int X_prepare(void *_conf)
 {
@@ -84,7 +76,6 @@ struct langsw X_install()
 		struct langsw sw = {
 				.name = "X",
 				.ext = ".x",
-				.create = X_create,
 				.prepare = X_prepare,
 				.exec = X_exec
 		}
